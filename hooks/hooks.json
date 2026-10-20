@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "Stop": [{"hooks": [{"type": "command", "command": "tacit hook stop", "timeout": 10}]}],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "tacit hook prompt", "timeout": 10}]}]
+  }
+}

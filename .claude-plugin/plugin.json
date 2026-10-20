@@ -1,0 +1,6 @@
+{
+  "name": "tacit",
+  "description": "A team knowledge base that writes itself from your Claude Code sessions, and only says what it can prove",
+  "version": "0.1.0",
+  "license": "MIT"
+}

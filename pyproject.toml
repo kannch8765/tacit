@@ -1,0 +1,21 @@
+[project]
+name = "tacit"
+version = "0.1.0"
+description = "A team knowledge base that writes itself from your Claude Code sessions, and only says what it can prove"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+tacit = "tacit.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

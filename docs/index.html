@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="description" content="tacit: a team knowledge base that writes itself from your Claude Code sessions, and only says what it can prove. How it observes, grounds, versions and whispers knowledge back." />
+<title>tacit — Tech guide</title>
+<style>
+:root{
+  color-scheme:light;
+  --text:#37352f;
+  --muted:#787774;
+  --faint:#9b9a97;
+  --border:rgba(55,53,47,.16);
+  --code-bg:#f7f6f3;
+  --callout-bg:#f1f1ef;
+  --inline-bg:rgba(135,131,120,.15);
+  --link:#2f76b7;
+  --cover:#f2f4ee;
+  --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+.topline{height:46px;display:flex;align-items:center;padding:0 18px;position:relative;z-index:3;font-size:13px;color:var(--muted)}
+.topline a{color:inherit;text-decoration:none}.topline a:hover{text-decoration:underline}
+.topline .sep{margin:0 7px;color:#b8b6b1}
+.topline .lang-switch{margin-left:auto;display:inline-flex;align-items:center;gap:3px;padding:2px;border-radius:6px}
+.lang-switch button{border:0;background:transparent;color:var(--muted);font:12px var(--sans);padding:4px 7px;border-radius:5px;cursor:pointer}
+.lang-switch button:hover{background:var(--code-bg);color:var(--text)}
+.lang-switch button.active{background:var(--code-bg);color:var(--text);font-weight:600}
+[data-lang-only="en"]{display:none!important}
+html[data-ui-lang="en"] [data-lang-only="zh"]{display:none!important}
+html[data-ui-lang="en"] [data-lang-only="en"]{display:revert!important}
+.cover{display:none}
+.page{width:min(708px,calc(100% - 48px));margin:0 auto;padding:0 0 120px}
+.page-header{margin:54px 0 46px;position:relative;z-index:2}
+.page-icon{width:104px;height:122px;margin:0 0 22px;display:flex;align-items:flex-end}
+.page-icon img{display:block;width:auto;height:118px;max-width:104px;object-fit:contain}
+h1{margin:0 0 18px;font-size:clamp(2.45rem,7vw,3rem);font-weight:700;letter-spacing:-.035em;line-height:1.2}
+.subtitle{margin:0;padding-left:14px;border-left:3px solid var(--text);color:var(--text);font-weight:600}
+.lede{margin-top:26px}
+section{margin-top:42px;scroll-margin-top:28px}
+h2{margin:0 0 14px;font-size:1.52rem;font-weight:650;letter-spacing:-.018em;line-height:1.3}
+h3{margin:28px 0 10px;font-size:1.08rem;font-weight:650;line-height:1.35}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:1.55em}li{margin:3px 0}strong{font-weight:650}
+code{font-family:var(--mono);font-size:.86em}
+p code,li code{padding:.12em .3em;border-radius:3px;background:var(--inline-bg);color:#eb5757}
+.code-wrap{position:relative;margin:14px 0}
+pre{margin:0;padding:18px 20px;overflow-x:auto;border-radius:3px;background:var(--code-bg);color:var(--text);font-family:var(--mono);font-size:.84rem;line-height:1.55;tab-size:2;white-space:pre}
+pre code{color:inherit;background:transparent;font-size:inherit}
+.copy{position:absolute;top:8px;right:8px;border:0;border-radius:4px;background:rgba(255,255,255,.88);color:var(--muted);font:12px var(--sans);padding:5px 8px;cursor:pointer;opacity:0;transition:opacity .12s ease,background .12s ease}
+.code-wrap:hover .copy,.copy:focus-visible{opacity:1}.copy:hover{background:#fff}
+.callout{margin:16px 0;padding:16px 18px;border-radius:3px;background:var(--callout-bg);display:grid;grid-template-columns:24px 1fr;gap:10px}.callout .icon{line-height:1.55}
+.architecture{margin:26px 0 0}.architecture figcaption{margin-top:7px;color:var(--muted);font-size:.82rem;text-align:left}
+.guide-shot{display:block;width:100%;height:auto;margin:18px 0 22px;border:1px solid var(--border);border-radius:8px}.guide-shot.tall{max-width:560px}
+.checklist{list-style:none;padding-left:0}.checklist li{display:grid;grid-template-columns:18px 1fr;gap:9px;margin:7px 0}.box{width:15px;height:15px;margin-top:5px;border:1.5px solid #9b9a97;border-radius:2px;background:#fff}
+.resources{padding-left:1.35em}.resources li{margin:6px 0}.references{overflow-wrap:anywhere}
+footer{margin-top:52px;color:var(--muted);font-size:.82rem}
+
+/* floating table of contents */
+.toc-dock{position:fixed;z-index:20;top:94px;right:18px;display:flex;align-items:flex-start;outline:none}
+.toc-rail{width:46px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;border-radius:8px;cursor:default}
+.toc-rail a{width:30px;height:4px;border-radius:99px;background:#e5e4e1;text-decoration:none;transition:background .12s ease,transform .12s ease}
+.toc-rail a:hover{background:#bab8b3}.toc-rail a.active{background:#37352f}
+.toc-panel{position:absolute;right:50px;top:0;width:236px;padding:18px 20px;border:1px solid rgba(55,53,47,.13);border-radius:18px;background:rgba(255,255,255,.98);box-shadow:0 16px 42px rgba(15,15,15,.10),0 1px 2px rgba(15,15,15,.05);opacity:0;transform:translateX(8px) scale(.985);transform-origin:top right;pointer-events:none;transition:opacity .14s ease,transform .14s ease}
+.toc-dock:hover .toc-panel,.toc-dock:focus-within .toc-panel{opacity:1;transform:none;pointer-events:auto}
+.toc-panel a{display:block;padding:4px 0;color:#85827d;text-decoration:none;font-size:15px;line-height:1.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc-panel a:hover{color:var(--text)}.toc-panel a.active{color:#4d82d8}
+
+@media(max-width:1040px){.toc-dock{display:none}}
+@media(max-width:600px){
+ body{font-size:15.5px}.topline{height:42px;padding:0 14px}.cover{height:116px}.page{width:min(100% - 32px,708px);padding-bottom:82px}.page-header{margin-top:34px;margin-bottom:38px}.page-icon{width:68px;height:80px;margin-bottom:18px}.page-icon img{height:78px;max-width:68px}section{margin-top:36px}pre{margin-inline:-4px;padding:15px 16px;font-size:.78rem}.copy{opacity:1}.architecture pre{font-size:.72rem}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+.emoji-icon{font-size:78px;line-height:1;align-items:flex-end}
+figure{margin:0}
+.tables{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
+.tcard{border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.86rem}
+.tcard .tname{font-family:var(--mono);font-weight:650;margin-bottom:4px}
+.tcard .tnote{color:var(--muted);font-size:.78rem;margin:0 0 6px}
+.tcard ul{list-style:none;padding:0;margin:0}.tcard li{margin:2px 0;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.tcard b{color:var(--text);font-weight:600}.tcard i{font-style:normal;font-size:.68rem;color:#eb5757;border:1px solid rgba(235,87,87,.35);border-radius:3px;padding:0 3px}
+.table-wrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{border:1px solid var(--border);padding:7px 10px;vertical-align:top;text-align:left}
+th{background:var(--code-bg);font-weight:600}
+td:first-child{white-space:nowrap}
+td code{font-size:.78rem;color:var(--text);background:none;padding:0;overflow-wrap:anywhere}
+.code-wrap.out pre{white-space:pre-wrap;overflow-wrap:anywhere}
+.demo-gif{display:block;width:100%;height:auto;margin:18px 0 6px;border:1px solid var(--border);border-radius:8px}
+.cap{color:var(--muted);font-size:.82rem;margin:4px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.stat{border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.stat .v{font-size:1.5rem;font-weight:650;line-height:1.2}.stat .l{color:var(--muted);font-size:.78rem}
+@media(max-width:600px){.tables{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+</head>
+<body>
+<nav class="topline" aria-label="Breadcrumb">
+  <a href="https://github.com/kannch8765/tacit" target="_blank" rel="noreferrer">kannch8765/tacit</a><span class="sep">/</span><span>Tech guide</span>
+</nav>
+
+<aside class="toc-dock" aria-label="Table of contents" tabindex="0">
+  <nav class="toc-rail" aria-label="Quick section navigation">
+    <a href="#quickstart" data-label="Quick start"></a>
+    <a href="#how" data-label="How it works"></a>
+    <a href="#buckets" data-label="Buckets"></a>
+    <a href="#schema" data-label="Data schema"></a>
+    <a href="#outcome" data-label="Batch outcome model"></a>
+    <a href="#whispers" data-label="Grounded whispers"></a>
+    <a href="#privacy" data-label="Privacy &amp; redaction"></a>
+    <a href="#observability" data-label="Observability"></a>
+    <a href="#structure" data-label="Repository structure"></a>
+    <a href="#demo" data-label="Live smoke test"></a>
+    <a href="#credits" data-label="Credits &amp; license"></a>
+  </nav>
+  <nav class="toc-panel" aria-label="Expanded table of contents">
+    <a href="#quickstart">Quick start</a>
+    <a href="#how">How it works</a>
+    <a href="#buckets">Buckets</a>
+    <a href="#schema">Data schema</a>
+    <a href="#outcome">Batch outcome model</a>
+    <a href="#whispers">Grounded whispers</a>
+    <a href="#privacy">Privacy &amp; redaction</a>
+    <a href="#observability">Observability</a>
+    <a href="#structure">Repository structure</a>
+    <a href="#demo">Live smoke test</a>
+    <a href="#credits">Credits &amp; license</a>
+  </nav>
+</aside>
+
+<main class="page">
+  <header class="page-header" id="overview">
+    <div class="page-icon emoji-icon" aria-hidden="true">🌱</div>
+    <h1>tacit</h1>
+    <blockquote class="subtitle">A team knowledge base that writes itself from your Claude Code sessions, and only says what it can prove.</blockquote>
+    <p class="lede">Teams make decisions in chat with their coding agent every day: <em>"we pin pydantic &lt; 3 because v3 breaks our validators"</em>, <em>"staging deploys need the VPN"</em>. Those live in transcripts nobody re-reads. tacit watches your sessions in the background, keeps that knowledge as typed, versioned <strong>cards</strong> in a local SQLite file, and hands the relevant ones back to the next prompt, each one with the exact words it came from.</p>
+    <img class="demo-gif" src="demo.gif" alt="tacit demo: a decision from one session comes back, with its quotes, when a teammate asks in Japanese days later" />
+    <p class="cap">A decision from one session comes back, with its quotes, when a teammate asks in Japanese days later. Every tacit line is real CLI output.</p>
+    <figure class="architecture">
+      <pre><code> Claude Code                       tacit (local, SQLite)
+ ───────────                       ─────────────────────
+ Stop hook ── queue session ────▶  worker (detached, one at a time)
+                                     │ transcript → evidence events
+                                     │ (secrets redacted)
+                                     ▼
+                                   observer turn ── OpenAI-compatible model
+                                     │ search · propose_&lt;bucket&gt; · reinforce
+                                     │ suggest_link · decline_intent
+                                     │ deliver_whisper
+                                     ▼
+                                   ledger ── cards (versioned) · evidence
+                                     │       links · batches · attempts
+                                     │       outcomes · intents · reviews
+          ┌──────────────────────────┼───────────────────┐
+          ▼                          ▼                   ▼
+ UserPromptSubmit ◀── whispers   tacit review       tacit stats
+  (queued + fast lane, no LLM)   (human inbox)      health · report
+                                                    (numbers only)</code></pre>
+      <figcaption>The whole path: a turn ends → the session is queued → a background observer turns it into grounded cards → the next prompt gets them back.</figcaption>
+    </figure>
+  </header>
+
+  <section id="quickstart">
+    <h2>Quick start</h2>
+    <p>Requires Python 3.12+ and <a href="https://docs.astral.sh/uv/" target="_blank" rel="noreferrer">uv</a>. The observer talks to any OpenAI-compatible chat-completions endpoint with tool calling; there is no LLM SDK, so switching providers is configuration only.</p>
+    <div class="code-wrap"><button class="copy" type="button">Copy</button><pre><code>git clone https://github.com/kannch8765/tacit &amp;&amp; cd tacit
+uv tool install .            # puts `tacit` on your PATH
+
+# any model behind an OpenAI-compatible endpoint
+export TACIT_LLM_MODEL=deepseek-v4-flash
+export TACIT_LLM_API_KEY_FILE=~/.config/tacit/key   # or TACIT_LLM_API_KEY
+
+# optional
+export TACIT_LLM_BASE_URL=https://opencode.ai/zen/v1   # the default
+export TACIT_HOME=~/.tacit                              # the default</code></pre></div>
+    <p>Add the two hooks to Claude Code (<code>~/.claude/settings.json</code>, or install the repo as a plugin with <code>hooks/hooks.json</code>):</p>
+    <div class="code-wrap"><button class="copy" type="button">Copy</button><pre><code>{
+  "hooks": {
+    "Stop": [{"hooks": [
+      {"type": "command", "command": "tacit hook stop", "timeout": 10}
+    ]}],
+    "UserPromptSubmit": [{"hooks": [
+      {"type": "command", "command": "tacit hook prompt", "timeout": 10}
+    ]}]
+  }
+}</code></pre></div>
+    <div class="table-wrap"><table>
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>tacit search &lt;words&gt;</code></td><td>Current cards, best match first (Japanese and Chinese work too)</td></tr>
+      <tr><td><code>tacit show &lt;card&gt;</code></td><td>One card with its fields, evidence quotes and links</td></tr>
+      <tr><td><code>tacit history &lt;card&gt;</code></td><td>Every version of a card, oldest first</td></tr>
+      <tr><td><code>tacit review</code></td><td>Pending link suggestions; <code>tacit review accept|dismiss &lt;id&gt;</code> decides one</td></tr>
+      <tr><td><code>tacit stats [--days N]</code></td><td>Daily numbers as JSON</td></tr>
+      <tr><td><code>tacit health</code></td><td>ok / warn / alert per check, exit code 0 / 1 / 2</td></tr>
+      <tr><td><code>tacit report [--out DIR]</code></td><td>A self-contained <code>report.html</code> with charts, plus <code>metrics.json</code></td></tr>
+      <tr><td><code>tacit worker</code></td><td>Drain queued and held batches by hand (the next Stop hook normally does it)</td></tr>
+    </table></div>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <h3>1. Observe, without blocking</h3>
+    <p>The <code>Stop</code> hook only records the session and its transcript path, then starts a detached worker if none is running (a file lock keeps it to one). The worker reads the transcript from a committed <strong>byte offset</strong>, takes only complete JSONL records (a half-written last line waits for the next run), and cuts them into batches of up to 200 lines.</p>
+    <h3>2. Turn transcript lines into trusted evidence</h3>
+    <p>Each text block, tool call and tool result becomes an <strong>evidence event</strong> with a backend-owned <code>evidence_id</code>, its role (<code>user</code>, <code>assistant</code>, <code>tool</code>) and its line number. Secrets are redacted on the whole block at this point, before anything is stored or sent. The observer model sees a catalog of these events.</p>
+    <h3>3. Ground every write</h3>
+    <p>The observer can only <em>cite</em> evidence ids; tacit copies the quote from the transcript itself, so the model never types a quote it could make up. A proposal whose ids don't resolve in the batch, or that breaks its bucket's rules, is recorded as <code>rejected</code> with a reason code. It is never silently saved and never silently dropped.</p>
+    <div class="code-wrap out"><pre><code>outcome: rejected   evidence_role_not_allowed
+         world_update can't be grounded by assistant evidence
+outcome: accepted   c_755179245877   (same fact, re-proposed with the tool result as evidence)</code></pre></div>
+    <p class="cap">From the live smoke test: the model first grounded a <code>world_update</code> in its own words, was told why, and fixed it in the same turn.</p>
+    <h3>4. Settle into a versioned ledger</h3>
+    <p>A grounded proposal becomes one of: a <strong>new card</strong>; a <strong>reinforcement</strong> of an existing card (the same knowledge seen again attaches new evidence instead of duplicating); or a <strong>new version</strong> that supersedes the old one. Cards are never edited in place (SCD type 2): superseding closes the old version (<code>superseded_at</code>, <code>superseded_by</code>) and links the new one with <code>supersedes</code>. Each card keeps <code>valid_from</code> (when it became true) and <code>recorded_at</code> (when tacit learned it), so "what do we believe now?" and "what did we believe on 10-10?" are both plain queries.</p>
+    <h3>5. Whisper it back</h3>
+    <p>On the next <code>UserPromptSubmit</code>, tacit hands Claude Code the relevant cards as context, with their dates, versions and exact quotes. See <a href="#whispers">Grounded whispers</a>.</p>
+    <h3>6. Ask a human when it matters</h3>
+    <p>Relations the observer suggests between cards (<code>same_as</code>, <code>supersedes</code>, <code>relates_to</code>, <code>contradicts</code>) wait in <code>tacit review</code>. Accepting one is a ledger write too, held to the same bucket rules as the observer's: a review can't merge or replace cards across buckets.</p>
+  </section>
+
+  <section id="buckets">
+    <h2>Buckets</h2>
+    <p>Every card belongs to one of five buckets. Required fields and evidence rules are enforced in code (<code>tacit/buckets.py</code>), not in the prompt: a proposal that breaks them is rejected with a reason code. Whether new evidence <em>reinforces</em> a card or <em>replaces</em> it is the observer's call, and a replacement is always an explicit <code>supersedes</code> (from the observer, or accepted in <code>tacit review</code>). tacit doesn't match a changed preference to the old one on its own.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Bucket</th><th>Example</th><th>Required fields</th><th>Usual update</th></tr>
+      <tr><td><code>preference</code></td><td>"answers short, bullets first"</td><td><code>who</code></td><td>Replaced by an explicit new version</td></tr>
+      <tr><td><code>workflow_habit</code></td><td>"branch before committing; run tests first"</td><td><code>trigger</code></td><td>Reinforced on repeat</td></tr>
+      <tr><td><code>world_update</code></td><td>"Mika is now the PM for payments" (was Ken)</td><td><code>source</code> = <code>user</code> | <code>tool</code>; optional <code>replaces</code>, <code>valid_from</code></td><td>Replaced by an explicit new version; evidence must come from the user or a tool result, <strong>never the assistant</strong> (enforced)</td></tr>
+      <tr><td><code>decision</code></td><td>"pin pydantic &lt; 3"</td><td><code>rationale</code></td><td>Stays until superseded</td></tr>
+      <tr><td><code>gotcha</code></td><td>"staging deploy hangs without the VPN"</td><td><code>symptom</code>, <code>fix</code></td><td>Reinforced when it bites again</td></tr>
+    </table></div>
+    <aside class="callout"><div class="icon">💡</div><div><code>world_update</code> is a <strong>knowledge-cutoff patch</strong>: things that changed after the model's training, which it would otherwise get confidently wrong. That's why its evidence can't be the assistant's own words.</div></aside>
+  </section>
+
+  <section id="schema">
+    <h2>Data schema</h2>
+    <p>One SQLite file (<code>$TACIT_HOME/tacit.db</code>), stdlib <code>sqlite3</code> only. Three groups of tables: the knowledge itself, the processing trail, and the conversation with the next prompt.</p>
+    <h3>Knowledge</h3>
+    <div class="tables">
+      <div class="tcard"><div class="tname">cards</div><p class="tnote">one row per version</p><ul><li><b>card</b> <i>PK</i></li><li>lineage · version <i>UQ</i></li><li>bucket · title · body · fields (JSON)</li><li>status: active | superseded | in_review | retired</li><li>valid_from · recorded_at</li><li>superseded_at · superseded_by</li><li>reinforcements · last_seen_at · dedupe_key</li></ul></div>
+      <div class="tcard"><div class="tname">evidence</div><p class="tnote">the exact quotes behind a card</p><ul><li><b>card</b> → cards</li><li>batch · line · role</li><li>quote · evidence_id · kind</li></ul></div>
+      <div class="tcard"><div class="tname">links</div><p class="tnote">directed relations between cards</p><ul><li><b>src</b> · <b>dst</b> · <b>kind</b> <i>PK</i></li><li>kind: supersedes | relates_to | contradicts</li><li>created_at</li></ul></div>
+      <div class="tcard"><div class="tname">card_search</div><p class="tnote">FTS5 virtual table</p><ul><li>card · terms</li><li>Latin words + CJK character bigrams, so any two-character piece of Japanese or Chinese matches</li></ul></div>
+    </div>
+    <h3>Processing trail</h3>
+    <div class="tables">
+      <div class="tcard"><div class="tname">sessions</div><ul><li><b>session</b> <i>PK</i></li><li>transcript_path</li><li>cursor (line) · byte_offset</li><li>updated_at</li></ul></div>
+      <div class="tcard"><div class="tname">batches</div><ul><li><b>batch</b> <i>PK</i> = hash(session, start, end)</li><li>start_line · end_line · end_offset</li><li>status: pending | settled</li></ul></div>
+      <div class="tcard"><div class="tname">attempts</div><ul><li><b>attempt</b> <i>PK</i> · batch</li><li>started_at · finished_at</li><li>status: running | completed | retryable</li><li>retry_reasons</li></ul></div>
+      <div class="tcard"><div class="tname">outcomes</div><p class="tnote">one row per proposal per attempt</p><ul><li>attempt · batch · proposal · card</li><li>outcome: accepted | duplicate | reinforced | superseded | review | rejected | retryable</li><li>code · reason</li></ul></div>
+      <div class="tcard"><div class="tname">intents · intent_outcomes</div><p class="tnote">"remember that …" and its answer</p><ul><li><b>intent</b> <i>PK</i> · session · batch · evidence_id · text</li><li>outcome: accepted | … | declined | deferred</li></ul></div>
+      <div class="tcard"><div class="tname">diagnostics</div><p class="tnote">problems that hold nothing</p><ul><li>session · batch · line · <b>code</b></li><li>e.g. malformed_record, transcript_shrank</li><li>codes and line numbers only, never text</li></ul></div>
+    </div>
+    <h3>Back to the prompt</h3>
+    <div class="tables">
+      <div class="tcard"><div class="tname">whispers</div><ul><li><b>whisper</b> <i>PK</i> · session · batch · card</li><li>text (rendered) · related</li><li>created_at · delivered_at</li></ul></div>
+      <div class="tcard"><div class="tname">reviews</div><ul><li><b>review</b> <i>PK</i> · relation · cards</li><li>reason · batch</li><li>status: pending | accepted | dismissed</li></ul></div>
+    </div>
+  </section>
+
+  <section id="outcome">
+    <h2>Batch outcome model</h2>
+    <p>The hard part of a background observer isn't the model call; it's deciding when a batch is <em>done</em>. tacit decides by <strong>ownership</strong>: a batch is held (its cursor doesn't move) only for work the batch itself owns. Everything optional is feedback, never a verdict.</p>
+    <div class="code-wrap"><pre><code>observer turn over a batch
+  │
+  ├─ tool error (bad args, unknown id) ─▶ fed back to the model; turn goes on
+  ├─ proposal breaks a rule ────────────▶ outcome = rejected + reason code
+  │                                       (settled: a recorded "no")
+  ├─ whisper / link suggestion fails ───▶ optional: never holds the batch
+  ▼
+finalize(): hold the batch only if owned work is unsettled
+  ├─ turn_failed         the model turn itself didn't complete
+  ├─ attempt_retryable   a storage failure on an owned write
+  └─ intent_blocking     a "remember that …" not answered yet
+                         (at most 3 completed turns, then released)
+  │
+  ├─ nothing held ─▶ batch settled; cursor + byte offset advance
+  └─ held ─────────▶ retried later from the same cursor; new lines
+                     make a new, wider batch (id = hash(session,
+                     start, end))</code></pre></div>
+    <ul>
+      <li><strong>Idempotent writes.</strong> Every write has a source key (batch + proposal), so replaying a proposal after a crash or retry doesn't duplicate it.</li>
+      <li><strong>Trusted intents.</strong> When the user says "remember that …", the observer must answer it with a card or an explicit <code>decline_intent</code> and a reason. A silent drop isn't an option.</li>
+      <li><strong>Everything is recorded.</strong> Batches, attempts with their retry reasons, and every proposal's outcome, so failure rates are measured, not guessed.</li>
+    </ul>
+  </section>
+
+  <section id="whispers">
+    <h2>Grounded whispers</h2>
+    <p>Two lanes hand knowledge back to the next prompt. Neither makes the prompt wait on a model.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Lane</th><th>When</th><th>How it picks</th></tr>
+      <tr><td>Queued (async)</td><td>Written by the observer after a batch, delivered on the next prompt</td><td>The observer may choose only a card its own <code>purpose=whisper</code> search returned in this turn, and 1-3 of that card's real snippet ids</td></tr>
+      <tr><td>Fast lane (sync)</td><td>On every prompt, no model call</td><td>Full-text search; a card needs at least two meaningful terms in common with the prompt (one, for a one-word prompt); at most 2 cards</td></tr>
+    </table></div>
+    <p>The model only <em>selects</em>. tacit <em>renders</em> the text itself: bucket, date, version, fields, the exact quotes, what the card replaced (following <code>supersedes</code> links), and up to two linked cards. Contradictions always come first and are marked ⚠; related cards are chosen by lexical MMR (relevant to the prompt, not redundant with each other).</p>
+    <div class="code-wrap out"><pre><code>tacit · decision (as of 2026-10-15, v1, c_43e68aaf97e5): Pin pydantic to &lt; 3
+  rationale: Pydantic 3 broke request validators.
+  [user] “Let's pin pydantic &lt; 3 for now, we can revisit when 3.2 ships the fix for custom validators.”</code></pre></div>
+    <p class="cap">A real queued whisper from the smoke test. Before it, the model tried to whisper without searching first and got this feedback, then searched and retried:</p>
+    <div class="code-wrap out"><pre><code>deliver_whisper may select only a card and snippets surfaced by a purpose=whisper search in this turn.
+Nothing was surfaced yet; call search with purpose=whisper first.</code></pre></div>
+  </section>
+
+  <section id="privacy">
+    <h2>Privacy &amp; redaction</h2>
+    <ul>
+      <li><strong>Local ledger.</strong> Everything is stored in one SQLite file on your machine.</li>
+      <li><strong>What the model sees.</strong> The model you configure receives the batch's evidence and the cards its searches return, after redaction.</li>
+      <li><strong>Redaction runs once, early.</strong> It runs on each whole block when evidence events are built, before the block is cut to size, so the ledger, the observer prompt and every whisper see the same scrubbed text. Structured tool input is redacted leaf by leaf before it is serialized, so JSON quoting can't hide a secret.</li>
+      <li><strong>Numbers-only observability.</strong> <code>stats</code>, <code>health</code> and <code>report</code> output numbers and fixed labels, never card text.</li>
+    </ul>
+    <div class="table-wrap"><table>
+      <tr><th>Kind</th><th>Catches</th></tr>
+      <tr><td>Token shapes</td><td>Anthropic, OpenAI, GitHub, AWS, Google, Slack keys; JWTs; <code>Bearer …</code></td></tr>
+      <tr><td><code>url_credentials</code></td><td><code>scheme://user:<b>password</b>@host</code></td></tr>
+      <tr><td><code>private_key</code></td><td>PEM private keys; a BEGIN marker with no END redacts to the end of the text</td></tr>
+      <tr><td><code>assignment</code></td><td><code>DEPLOY_TOKEN=…</code>, <code>"api_key": "…"</code>, <code>password: …</code>, also nested inside other values (<code>note: TOKEN=…</code>, <code>?access_token=…</code>)</td></tr>
+      <tr><td><code>field</code></td><td>Structured fields with a sensitive name (<code>password</code>, <code>apiKey</code>, <code>x-api-key</code>, <code>client_secret</code>, …)</td></tr>
+    </table></div>
+    <div class="code-wrap out"><pre><code>evidence [tool line 2]: connect ETIMEDOUT 10.8.0.12:443
+export DEPLOY_TOKEN=[redacted:assignment]</code></pre></div>
+    <aside class="callout"><div class="icon">⚠️</div><div>Evidence is never edited, so a false positive would lose text for good. Sensitive names match on <strong>whole words</strong> (<code>secretary</code>, <code>tokenizer</code> and <code>max_tokens</code> survive) and secret values are ASCII-only, so prose and CJK text after a word like "secret:" are never swallowed. Redaction is pattern-based: it lowers the risk; it can't promise every secret is caught.</div></aside>
+  </section>
+
+  <section id="observability">
+    <h2>Observability</h2>
+    <p>Health and failure rates come straight from the ledger. <code>tacit stats</code> rolls it up per day (batches, retryable share and reasons, proposal outcomes, rejections by code, observer turn time, whispers, intents). <code>tacit health</code> turns that into checks:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Check</th><th>warn</th><th>alert</th></tr>
+      <tr><td><code>batch_retryable_share_24h</code></td><td>0.1</td><td>0.25</td></tr>
+      <tr><td><code>proposal_rejected_share_24h</code></td><td>0.3</td><td>0.6</td></tr>
+      <tr><td><code>observer_turn_p90_s_24h</code></td><td>120 s</td><td>300 s</td></tr>
+      <tr><td><code>held_sessions</code></td><td>1</td><td>3</td></tr>
+      <tr><td><code>unresolved_intent_age_h</code></td><td>1 h</td><td>24 h</td></tr>
+      <tr><td><code>pending_reviews</code></td><td>10</td><td>50</td></tr>
+    </table></div>
+    <p><code>tacit report</code> writes a self-contained <code>report.html</code> (inline SVG charts, no external assets) and the <code>metrics.json</code> behind it.</p>
+  </section>
+
+  <section id="structure">
+    <h2>Repository structure</h2>
+    <div class="code-wrap"><pre><code>tacit/
+├── tacit/
+│   ├── cli.py         command line + the two hook entry points
+│   ├── worker.py      detached worker, one at a time (flock)
+│   ├── transcript.py  JSONL records → trusted evidence events + catalog
+│   ├── redact.py      secret redaction (tokens, assignments, URLs, keys)
+│   ├── observer.py    one model turn per batch, purpose-built tools
+│   ├── runtime.py     write path: proposals, reinforce, intents, verdict
+│   ├── buckets.py     the five buckets: fields, values, evidence rules
+│   ├── store.py       the ledger: versioned cards → outcomes
+│   ├── whisper.py     selection, weaving (history + related), fast lane
+│   ├── text.py        search tokens: Latin words + CJK bigrams
+│   ├── llm.py         stdlib OpenAI-compatible client, tool calling
+│   ├── stats.py       daily rollup + healthcheck (numbers only)
+│   └── report.py      report.html (inline SVG) + metrics.json
+├── hooks/hooks.json   Stop → tacit hook stop
+│                      UserPromptSubmit → tacit hook prompt
+├── .claude-plugin/    plugin manifest
+├── tests/             scripted fake model: no network, no tokens
+├── demo/              made-up sessions for the live smoke test + GIF
+├── docs/              DESIGN.md, demo.gif, this page
+└── site/              source of this page (python site/build.py)</code></pre></div>
+    <p>The design and its decisions, including a point-by-point comparison with the upstream idea, are in <a href="https://github.com/kannch8765/tacit/blob/main/docs/DESIGN.md" target="_blank" rel="noreferrer">docs/DESIGN.md</a>.</p>
+  </section>
+
+  <section id="demo">
+    <h2>Live smoke test</h2>
+    <p>Four short, made-up sessions run through the real observer on Gemini flash-lite (its OpenAI-compatible endpoint, no code changes): a decision, a gotcha with a fake secret in a tool result, a "remember that" confirmed by a tool result, and a later question that should bring a card back.</p>
+    <div class="stats">
+      <div class="stat"><div class="v">4 / 4</div><div class="l">batches settled</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">cards accepted</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">proposal rejected, with a reason</div></div>
+      <div class="stat"><div class="v">1</div><div class="l">secret redacted</div></div>
+    </div>
+    <p>Run it yourself with your own key; see <a href="https://github.com/kannch8765/tacit/tree/main/demo" target="_blank" rel="noreferrer">demo/</a>. The offline test suite uses a scripted fake model instead: no network, no tokens.</p>
+    <div class="code-wrap"><button class="copy" type="button">Copy</button><pre><code>uv sync
+uv run pytest</code></pre></div>
+  </section>
+
+  <section id="credits">
+    <h2>Credits &amp; license</h2>
+    <ul class="resources">
+      <li>Inspired by <a href="https://github.com/letta-ai/claude-subconscious" target="_blank" rel="noreferrer">letta-ai/claude-subconscious</a> (MIT): the hook-driven "background agent that whispers" idea. tacit is a separate rewrite with no shared code, no Letta dependency and a different focus (grounded team knowledge).</li>
+      <li>Co-authored with Claude Opus 5.5 and GPT 6.1 Sol.</li>
+      <li>MIT licensed. Not affiliated with Anthropic. Claude, Claude Code and Clawd are trademarks of Anthropic.</li>
+    </ul>
+  </section>
+
+  <footer>tacit v0.1 · <a href="https://github.com/kannch8765/tacit" target="_blank" rel="noreferrer">github.com/kannch8765/tacit</a></footer>
+</main>
+
+<script>
+document.querySelectorAll('.copy').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+    const text=btn.parentElement.querySelector('pre').innerText;
+    try{await navigator.clipboard.writeText(text);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1100)}
+    catch{btn.textContent='Select'}
+  });
+});
+document.querySelectorAll('.toc-rail a').forEach(a=>{a.setAttribute('aria-label',a.dataset.label);a.setAttribute('title',a.dataset.label)});
+const allLinks=[...document.querySelectorAll('.toc-rail a, .toc-panel a')];
+const ids=[...new Set(allLinks.map(a=>a.getAttribute('href')).filter(Boolean))];
+const sections=ids.map(id=>document.querySelector(id)).filter(Boolean);
+const setActive=id=>allLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===id));
+const io=new IntersectionObserver(entries=>{
+  const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);
+  if(visible[0]) setActive('#'+visible[0].target.id);
+},{rootMargin:'-15% 0px -72% 0px',threshold:[0,.1,.5]});
+sections.forEach(s=>io.observe(s));
+setActive(ids[0]);
+</script>
+</body>
+</html>
